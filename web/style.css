@@ -1,0 +1,135 @@
+:root {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+body {
+  margin: 0;
+  background: #0b0f14;
+  color: #e8eef6;
+}
+.top {
+  padding: 16px;
+  border-bottom: 1px solid #1b2633;
+  background: #0b0f14;
+  position: sticky;
+  top: 0;
+}
+.banner {
+  font-size: 13px;
+  color: #b8c6d8;
+  padding: 10px 12px;
+  background: #101826;
+  border: 1px solid #1b2633;
+  border-radius: 12px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.row.right {
+  justify-content: flex-end;
+}
+h1 {
+  margin: 12px 0 0;
+  font-size: 20px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 16px;
+  padding: 16px;
+}
+.card {
+  background: #0f1724;
+  border: 1px solid #1b2633;
+  border-radius: 16px;
+  padding: 16px;
+}
+h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.label {
+  display: block;
+  margin: 10px 0 6px;
+  color: #b8c6d8;
+  font-size: 13px;
+}
+textarea,
+input[type="number"] {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 12px;
+  border: 1px solid #243244;
+  background: #0b0f14;
+  color: #e8eef6;
+  padding: 10px;
+}
+input[type="range"] {
+  width: 100%;
+}
+button {
+  border-radius: 12px;
+  border: 1px solid #243244;
+  background: #101826;
+  color: #e8eef6;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+button.danger {
+  border-color: #4a2b2b;
+  background: #1a0f12;
+}
+.pill {
+  min-width: 36px;
+  text-align: center;
+  border: 1px solid #243244;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #0b0f14;
+}
+.checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+  color: #c7d3e2;
+}
+.status {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #b8c6d8;
+  min-height: 18px;
+}
+.list {
+  display: grid;
+  gap: 10px;
+}
+.item {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #243244;
+  background: #0b0f14;
+}
+.item .small {
+  color: #b8c6d8;
+  font-size: 12px;
+  margin-top: 4px;
+}
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+.dialog {
+  display: grid;
+  gap: 10px;
+  min-width: 420px;
+}
+.muted {
+  color: #b8c6d8;
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,5 @@
+data/
+dist/
+build/
+*.corrupt.json
+installed_version.json

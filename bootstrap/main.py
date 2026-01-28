@@ -1,80 +1,69 @@
-import json
-import os
-from datetime import datetime
+# bootstrap/main.py
+from __future__ import annotations
+
+import shutil
+import sys
 from pathlib import Path
 
-import webview
 
-APP_DIR = Path(__file__).resolve().parent
-DATA_DIR = APP_DIR / "data"
-WEB_DIR = APP_DIR / "web"
-ENTRIES_PATH = DATA_DIR / "entries.json"
+APP_NAME = "mood"  # Beckett-coded ✅
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
+SRC_WEB_DIR = REPO_ROOT / "web"
+SRC_APP_DIR = REPO_ROOT / "mood_app"
+SRC_VERSION = REPO_ROOT / "version.json"
 
-def now_iso():
-    # Local time ISO; good enough for personal journaling
-    return datetime.now().astimezone().isoformat(timespec="seconds")
+SUPPORT_DIR = Path.home() / "Library" / "Application Support" / APP_NAME
+SUPPORT_APP_DIR = SUPPORT_DIR / "app"
+SUPPORT_WEB_DIR = SUPPORT_DIR / "web"
+SUPPORT_DATA_DIR = SUPPORT_DIR / "data"
+SUPPORT_VERSION = SUPPORT_DIR / "installed_version.json"
 
-
-def ensure_storage():
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    if not ENTRIES_PATH.exists():
-        ENTRIES_PATH.write_text("[]", encoding="utf-8")
+SUPPORT_MOOD_APP_DIR = SUPPORT_APP_DIR / "mood_app"
 
 
-def load_entries():
-    ensure_storage()
-    try:
-        return json.loads(ENTRIES_PATH.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        # If file gets corrupted, preserve it and start fresh
-        backup = ENTRIES_PATH.with_suffix(".corrupt.json")
-        ENTRIES_PATH.replace(backup)
-        ENTRIES_PATH.write_text("[]", encoding="utf-8")
-        return []
+def ensure_dirs() -> None:
+    SUPPORT_DIR.mkdir(parents=True, exist_ok=True)
+    SUPPORT_APP_DIR.mkdir(parents=True, exist_ok=True)
+    SUPPORT_WEB_DIR.mkdir(parents=True, exist_ok=True)
+    SUPPORT_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def save_entries(entries):
-    ensure_storage()
-    ENTRIES_PATH.write_text(json.dumps(
-        entries, indent=2, ensure_ascii=False), encoding="utf-8")
+def copy_tree(src: Path, dst: Path) -> None:
+    if dst.exists():
+        shutil.rmtree(dst)
+    shutil.copytree(src, dst)
 
 
-class API:
-    def ping(self):
-        return {"ok": True}
+def first_install_if_needed() -> None:
+    """
+    If there's no installed app code yet, seed Application Support with the repo's web/ + mood_app/.
+    This allows future updates to replace those folders without repackaging the .app.
+    """
+    if not SUPPORT_MOOD_APP_DIR.exists():
+        copy_tree(SRC_APP_DIR, SUPPORT_MOOD_APP_DIR)
 
-    def list_entries(self):
-        entries = load_entries()
-        # newest first
-        entries.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
-        return entries
+    # Always ensure web exists (but don't overwrite if user already has it installed)
+    if not (SUPPORT_WEB_DIR / "index.html").exists():
+        copy_tree(SRC_WEB_DIR, SUPPORT_WEB_DIR)
 
-    def add_entry(self, entry):
-        entries = load_entries()
+    # Seed installed_version.json if missing
+    if not SUPPORT_VERSION.exists() and SRC_VERSION.exists():
+        shutil.copy2(SRC_VERSION, SUPPORT_VERSION)
 
-        ts = now_iso()
-        entry = dict(entry or {})
-        entry.setdefault("timestamp", ts)
-        entry.setdefault("date", ts[:10])
-        entry.setdefault("id", entry["timestamp"])
 
-        entries.append(entry)
-        save_entries(entries)
-        return {"ok": True, "id": entry["id"]}
+def run_installed() -> None:
+    """
+    Import and run the installed app from Application Support.
+    """
+    # Make sure we import the installed mood_app, not the repo version
+    sys.path.insert(0, str(SUPPORT_APP_DIR))
+
+    from mood_app.run import run  # type: ignore
+    run(app_name=APP_NAME, support_dir=SUPPORT_DIR)
 
 
 if __name__ == "__main__":
-    ensure_storage()
-    api = API()
-
-    window = webview.create_window(
-        title="Mood Journal",
-        url=str(WEB_DIR / "index.html"),
-        js_api=api,
-        width=920,
-        height=720,
-        resizable=True,
-        frameless=False
-    )
-    webview.start(private_mode=False)
+    ensure_dirs()
+    first_install_if_needed()
+    run_installed()

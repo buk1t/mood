@@ -8,6 +8,24 @@ const panicDialog = document.getElementById("panicDialog");
 const panicMood = document.getElementById("panicMood");
 const panicText = document.getElementById("panicText");
 const panicSave = document.getElementById("panicSave");
+const updateBtn = document.getElementById("updateBtn");
+
+updateBtn.addEventListener("click", async () => {
+  updateBtn.disabled = true;
+  updateBtn.textContent = "Checking…";
+  try {
+    const res = await window.pywebview.api.check_for_updates();
+    alert(res.message || "Done.");
+    if (res.restart_required) {
+      await window.pywebview.api.restart_app();
+    }
+  } catch (e) {
+    alert("Update check failed.");
+  } finally {
+    updateBtn.disabled = false;
+    updateBtn.textContent = "Check for Updates";
+  }
+});
 
 mood.addEventListener("input", () => moodVal.textContent = mood.value);
 
